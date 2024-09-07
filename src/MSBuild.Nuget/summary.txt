@@ -1,0 +1,1 @@
+OpenStrata.MSBuild.Nuget is an extension used by various OpenStrata project types to facilitate the packaging of Production-Ready-to-DDCI Power Platform capabilities.

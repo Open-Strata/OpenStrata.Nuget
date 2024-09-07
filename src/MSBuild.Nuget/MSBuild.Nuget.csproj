@@ -1,0 +1,112 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+
+		<TargetFramework>netstandard2.0</TargetFramework>
+
+		<Product>OpenStrata.MSBuild.Nuget</Product>
+
+		<!-- This target will run when MSBuild is collecting the files to be packaged, and we'll implement it below. This property controls the dependency list for this packaging process, so by adding our custom property we hook ourselves into the process in a supported way. -->
+		<TargetsForTfmSpecificBuildOutput>
+			$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage
+		</TargetsForTfmSpecificBuildOutput>
+		<!-- This property tells MSBuild where the root folder of the package's build assets should be. Because we are not a library package, we should not pack to 'lib'. Instead, we choose 'tasks' by convention. -->
+		<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
+		<!-- NuGet does validation that libraries in a package are exposed as dependencies, but we _explicitly_ do not want that behavior for MSBuild tasks. They are isolated by design. Therefore we ignore this specific warning. -->
+		<NoWarn>NU5100</NoWarn>
+		<AssemblyName>OpenStrata.MSBuild.Nuget</AssemblyName>
+		<RootNamespace>OpenStrata.MSBuild.Nuget</RootNamespace>
+		<SignAssembly>True</SignAssembly>
+		<AssemblyOriginatorKeyFile>OpenStrata.MSBuild.Nuget.snk</AssemblyOriginatorKeyFile>
+		<DelaySign>False</DelaySign>
+
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<DelayCreationOfNugetPackage>true</DelayCreationOfNugetPackage>
+		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+		<DevelopmentDependency>true</DevelopmentDependency>
+
+		<IsTool>true</IsTool>		
+
+	</PropertyGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" PrivateAssets="all" IncludeAssets="compile;runtime;build;native;contentfiles;analyzers;buildtransitive" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" PrivateAssets="all" IncludeAssets="compile;runtime;build;native;contentfiles;analyzers;buildtransitive" />
+	</ItemGroup>
+
+	<!--<Import Project="..\..\Shared\Nuget.Shared\Nuget.Shared.projitems"  />-->
+
+	<!--<Import Project="..\..\Shared\Xml.Shared\Xml.Shared.projitems"  />-->
+
+	<!--<Import Project="..\OpenStrata.Dev.MSBuild.Common.props" />-->
+
+	<ItemGroup>
+	  <None Include="..\ICON.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="Tools\NuGet.exe" Pack="true" PackagePath="\tools" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="Media\DefaultIcon.png" Pack="true" PackagePath="\media" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="Microsoft.Build.Utilities.Core" Version="17.3.2" />
+	</ItemGroup>
+	
+	
+	<ItemGroup>
+		<None Include="Build\$(Product).props" Pack="true" PackagePath="\build\$(Product).props" />
+		<None Include="Build\$(Product).props" Pack="true" PackagePath="\buildTransitive\$(Product).props" Condition="'$(IsTransitiveDevelopmentDependency)' == 'true'" />
+		<None Include="Build\$(Product).props" Pack="true" PackagePath="\buildMultiTargeting\$(Product).props" Condition="'$(IsMultiTargetingBuild)' == 'true'" />
+		<None Include="Build\$(Product).targets" Pack="true" PackagePath="\build\$(Product).targets" />
+		<None Include="Build\$(Product).targets" Pack="true" PackagePath="\buildTransitive\$(Product).targets" Condition="'$(IsTransitiveDevelopmentDependency)' == 'true'" />
+		<None Include="Build\$(Product).targets" Pack="true" PackagePath="\buildMultiTargeting\$(Product).targets" Condition="'$(IsMultiTargetingBuild)' == 'true'" />
+	</ItemGroup>	
+
+
+
+	<PropertyGroup>
+		<MoveNugetPackageToLocalPackageFeedDependsOn>
+			LocalGenerateNuspecOutput;
+			$(MoveNugetPackageToLocalPackageFeedDependsOn)
+		</MoveNugetPackageToLocalPackageFeedDependsOn>
+
+		<GenerateNuspecDependsOn>
+			GetPackageMetadataFromFiles;
+			$(GenerateNuspecDependsOn)
+		</GenerateNuspecDependsOn>
+		
+		<!--Setting AfterMicrosoftNETSdkTargets to trigger the importing of MSBuild.Nuget.Build.targets when appropriate.-->
+		<AfterMicrosoftNETSdkTargets>
+			$(AfterMicrosoftNETSdkTargets);
+			$(MSBuildProjectDirectory)\MSBuild.Nuget.Build.targets;
+		</AfterMicrosoftNETSdkTargets>
+		<PackageIcon>ICON.png</PackageIcon>
+		<RepositoryUrl>https://github.com/Open-Strata/OpenStrata.Nuget</RepositoryUrl>
+
+	</PropertyGroup>
+
+
+	<Target Name="_ProcessGenerateNuspecOutput">
+		<!--Dummy Target-->
+	</Target>
+
+
+
+
+
+	<!-- This is the target we defined above. It's purpose is to add all of our PackageReference and ProjectReference's runtime assets to our package output.  -->
+	<Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+		<ItemGroup>
+			<!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
+			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+		</ItemGroup>
+	</Target>
+
+
+
+</Project>

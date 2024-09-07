@@ -1,0 +1,10 @@
+**OpenStrata.MSBuild.Nuget** OpenStrata.MSBuild.Nuget, a component of the OpenStrata Open Source initiative.
+
+***
+
+
+**About the OpenStrata Initiative**
+
+The OpenStrata Initiative is an open-source project with the explicit objective to facilitate a standardized framework for Publishers and Consumers within the Microsoft Power Platform ecosystem to **Distribute**, **Discover**, **Consume**, and **Integrate** (DDCI) production-ready Power Platform 
+capabilities.
+

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>OpenStrata.MSBuild.Nuget</id>
+    <version>1.0.0</version>
+    <authors>OpenStrata.MSBuild.Nuget</authors>
+    <developmentDependency>true</developmentDependency>
+    <description>Package Description</description>
+    <repository type="git" commit="72656f2dd2581a88aa48437206c51691d19c0771" />
+  </metadata>
+  <files>
+    <file src="C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\bin\Debug\netstandard2.0\OpenStrata.MSBuild.Nuget.dll" target="tasks\OpenStrata.MSBuild.Nuget.dll" />
+    <file src="C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\Tools\NuGet.exe" target="\tools\NuGet.exe" />
+    <file src="C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\Media\DefaultIcon.png" target="\media\DefaultIcon.png" />
+    <file src="C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\Build\OpenStrata.MSBuild.Nuget.props" target="\build\OpenStrata.MSBuild.Nuget.props" />
+    <file src="C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\Build\OpenStrata.MSBuild.Nuget.targets" target="\build\OpenStrata.MSBuild.Nuget.targets" />
+  </files>
+</package>

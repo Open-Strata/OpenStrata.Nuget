@@ -1,0 +1,1 @@
+**OpenStrata.MSBuild.Nuget** OpenStrata.MSBuild.Nuget, a component of the OpenStrata Open Source initiative.

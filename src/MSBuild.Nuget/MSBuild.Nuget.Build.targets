@@ -1,0 +1,68 @@
+﻿<!--
+***********************************************************************************************
+MSBuild.Nuget.Builds
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+Copyright (c) 74Bravo LLC and Contributors. All rights reserved.. All rights reserved.
+***********************************************************************************************
+-->
+<Project  xmlns='http://schemas.microsoft.com/developer/msbuild/2003' >
+
+	<PropertyGroup>
+		<TestOfBuildTargets>This is a test</TestOfBuildTargets>
+	</PropertyGroup>
+
+
+	<Target Name="GetPackageMetadataFromFiles"
+			DependsOnTargets="$(GetPackageMetadataFromFilesDependsOn)">
+
+	</Target>
+
+
+
+	<Target Name="LocalGenerateNuspecOutput" AfterTargets="GenerateNuspec">
+		<ItemGroup>
+			<_NuspecOutput Include="%(NuGetPackOutput.Identity)" Condition="'%(Extension)'=='.nuspec'" />
+			<_NugetOutput Include="%(NuGetPackOutput.Identity)" Condition="'%(Extension)'=='.nupkg'" />
+		</ItemGroup>
+
+		<PropertyGroup>
+			<NuspecFileAbsolutePath>%(_NuspecOutput.Identity)</NuspecFileAbsolutePath>
+			<NugetFileAbsolutePath>%(_NugetOutput.Identity)</NugetFileAbsolutePath>
+		</PropertyGroup>
+
+	</Target>
+
+
+	<!--<Target Name="LocalMoveNugetPackageToLocalPackageFeed" AfterTargets="Pack"
+	 DependsOnTargets="_ProcessGenerateNuspecOutput; $(MoveNugetPackageToLocalPackageFeedDependsOn)"-->
+	
+	<Target Name="LocalMoveNugetPackageToLocalPackageFeed" AfterTargets="Pack"  >
+
+		<Copy SourceFiles="$(NugetFileAbsolutePath)"
+			  DestinationFolder="$(LocalPackageFeed)"
+			  SkipUnchangedFiles="true"
+			   Condition="'$(NugetFileAbsolutePath)' != ''" />
+
+	</Target>
+
+
+	<Target Name="_GetNoTargetProjectVersion" DependsOnTargets="$(GetPackageVersionDependsOn)"
+		Returns="@(_NoTargetProjectPathWithVersion)" Condition="">
+		<ItemGroup>
+			<_NoTargetProjectPathWithVersion Include="$(MSBuildProjectFullPath)">
+				<ProjectVersion Condition="'$(PackageVersion)' != ''">$(PackageVersion)</ProjectVersion>
+				<ProjectVersion Condition="'$(PackageVersion)' == ''">1.0.0</ProjectVersion>
+				<NugetPackageId Condition="'$(PackageId)' != ''" >$(PackageId)</NugetPackageId>
+				<NugetPackageId Condition="'$(PackageId)' == ''" >$(ProjectName)</NugetPackageId>
+			</_NoTargetProjectPathWithVersion>
+		</ItemGroup>
+	</Target>
+
+
+
+
+</Project>

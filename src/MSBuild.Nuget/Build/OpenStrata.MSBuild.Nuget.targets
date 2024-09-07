@@ -1,0 +1,192 @@
+﻿<!--
+***********************************************************************************************
+OpenStrata.MSBuild.Nuget.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+Copyright (c) 74Bravo LLC and Contributors. All rights reserved.. All rights reserved.
+***********************************************************************************************
+-->
+<Project  xmlns='http://schemas.microsoft.com/developer/msbuild/2003' >
+
+	<PropertyGroup Condition="$(OpenStrataMSBuildNuGetAssemblyFile) == ''">
+		<OpenStrataMSBuildNuGetAssemblyFile>$(MSBuildThisFileDirectory)..\tasks\OpenStrata.MSBuild.Nuget.dll</OpenStrataMSBuildNuGetAssemblyFile>
+		<MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+	</PropertyGroup>
+
+	<!-- Tasks -->
+	<UsingTask TaskName="OpenStrata.MSBuild.Nuget.Tasks.AddNoTargetProjectReferencesToNuspec" AssemblyFile="$(OpenStrataMSBuildNuGetAssemblyFile)"     TaskFactory="TaskHostFactory" />
+	<UsingTask TaskName="OpenStrata.MSBuild.Nuget.Tasks.AddPackageReferencesRequiredForInstall" AssemblyFile="$(OpenStrataMSBuildNuGetAssemblyFile)"     TaskFactory="TaskHostFactory" />
+	<UsingTask TaskName="OpenStrata.MSBuild.Nuget.Tasks.AddPackageReferencesAsRootDependencies" AssemblyFile="$(OpenStrataMSBuildNuGetAssemblyFile)"     TaskFactory="TaskHostFactory" />
+
+	<UsingTask TaskName="OpenStrataGetTextFileContents" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup>
+			<TxtFilePath ParameterType="System.String" Required="true"   />
+			<FileTxt ParameterType="System.String" Output="true" />
+		</ParameterGroup>
+		<Task>
+			<Using Namespace="System.IO"/>
+			<Code Type="Fragment" Language="cs">
+				<![CDATA[
+				
+					FileTxt = string.Empty;
+
+					if (File.Exists(TxtFilePath))
+					{
+						FileTxt = File.ReadAllText(TxtFilePath);
+					}
+				
+					]]>
+			</Code>
+		</Task>
+	</UsingTask>
+
+	<Target Name="GetPackageReleaseNotesFromTextFile" Condition="Exists('$(PackageReleaseNotesPath)')" >
+
+		<PropertyGroup>
+			<ReleaseNotesPath Condition="'$(ReleaseNotesPath)' == ''">$(PackageReleaseNotesPath)</ReleaseNotesPath>
+		</PropertyGroup>
+
+
+		<OpenStrataGetTextFileContents Condition="'$(ReleaseNotesPath)' != ''"
+			TxtFilePath="$(ReleaseNotesPath)"
+			>
+			<Output
+			  TaskParameter="FileTxt"
+			  PropertyName="PackageReleaseNotes"/>
+		</OpenStrataGetTextFileContents>
+
+	</Target>
+
+	<Target Name="GetPackageDescriptionFromTextFile" Condition="Exists('$(PackageDescriptionPath)')" >
+
+		<OpenStrataGetTextFileContents  Condition="'$(PackageDescriptionPath)' != ''"
+			TxtFilePath="$(PackageDescriptionPath)"
+			>
+			<Output
+			  TaskParameter="FileTxt"
+			  PropertyName="PackageDescription"/>
+		</OpenStrataGetTextFileContents>
+
+	</Target>
+
+	<Target Name="GetPackageSummaryFromTextFile" Condition="Exists('$(PackageSummaryPath)')" >
+
+		<OpenStrataGetTextFileContents
+			TxtFilePath="$(PackageSummaryPath)"
+			>
+			<Output
+			  TaskParameter="FileTxt"
+			  PropertyName="PackageDescription"/>
+		</OpenStrataGetTextFileContents>
+
+	</Target>
+
+	<Target Name="_CheckForDelayedPackageCreation" DependsOnTargets ="_IntermediatePack">
+		<PropertyGroup>
+			<ContinuePackingAfterGeneratingNuspec Condition="'$(DelayCreationOfNugetPackage)' == 'true'">false</ContinuePackingAfterGeneratingNuspec>
+		</PropertyGroup>
+	</Target>
+
+	<Target Name="_ProcessGenerateNuspecOutput"
+			BeforeTargets="ExecuteDelayedNugetPackageCreation; $(DelayedPackageCreationDependsOn)"
+			DependsOnTargets="GenerateNuspec"
+		    Condition="'$(DelayCreationOfNugetPackage)' == 'true' AND $(IsPackable) == 'true'"
+			>
+		<ItemGroup>
+			<_NuspecOutput Include="%(NuGetPackOutput.Identity)" Condition="'%(Extension)'=='.nuspec'" />
+			<_NugetOutput Include="%(NuGetPackOutput.Identity)" Condition="'%(Extension)'=='.nupkg'" />
+		</ItemGroup>
+
+		<PropertyGroup>
+			<NuspecFileAbsolutePath>%(_NuspecOutput.Identity)</NuspecFileAbsolutePath>
+			<NugetFileAbsolutePath>%(_NugetOutput.Identity)</NugetFileAbsolutePath>
+		</PropertyGroup>
+
+	</Target>
+
+	<Target Name="ExecuteDelayedNugetPackageCreation"
+			AfterTargets="GenerateNuspec"
+			DependsOnTargets="_ProcessGenerateNuspecOutput; _GetOutputItemsFromPack; $(DelayedPackageCreationDependsOn)"
+			Condition="'$(DelayCreationOfNugetPackage)' == 'true' AND $(IsPackable) == 'true'"
+			Inputs=""
+			Outputs="">
+
+		<PropertyGroup>
+			<NugetCommandPath>$(MSBuildThisFile)</NugetCommandPath>
+		</PropertyGroup>
+
+		<Exec Command='$(NugetExePath) pack "$(NuspecFileAbsolutePath)" -OutputDirectory "$(PackageOutputAbsolutePath)$(SingleSpacePathSuffixFix)"' />
+
+	</Target>
+
+	<Target Name="AddNoTargetProjectReferencesToNuspec" Condition="'$(OpenStrataProjectType)' != 'strati'">
+
+		<MSBuild
+		  Projects="@(ProjectReference)"
+		  Targets="_GetNoTargetProjectVersion"
+		  SkipNonexistentTargets="true"
+		  SkipNonexistentProjects="true"
+		  Properties="BuildProjectReferences=false;">
+			<Output
+			  TaskParameter="TargetOutputs"
+			  ItemName="_NoTargetProjectReferencesWithVersions"/>
+		</MSBuild>
+
+		<AddNoTargetProjectReferencesToNuspec
+			AbsoluteNuspecPath="$(NuspecFileAbsolutePath)"
+			ProjectReferences="@(_NoTargetProjectReferencesWithVersions)" />
+
+		<AddPackageReferencesRequiredForInstall
+			AbsoluteNuspecPath="$(NuspecFileAbsolutePath)"
+			PackageReferences="@(PackageReferenceRequiredForInstall)" />
+
+		<AddPackageReferencesAsRootDependencies
+			AbsoluteNuspecPath="$(NuspecFileAbsolutePath)"
+			PackageReferences="@(PackageReference)" />
+
+	</Target>
+
+	<Target Name="_GetNoTargetProjectVersion" DependsOnTargets="$(GetPackageVersionDependsOn)"
+			Returns="@(_NoTargetProjectPathWithVersion)" Condition="">
+		<ItemGroup>
+			<_NoTargetProjectPathWithVersion Include="$(MSBuildProjectFullPath)" Condition="'$(IsPackable)' == 'true'">
+				<ProjectVersion Condition="'$(PackageVersion)' != ''">$(PackageVersion)</ProjectVersion>
+				<ProjectVersion Condition="'$(PackageVersion)' == ''">1.0.0</ProjectVersion>
+				<NugetPackageId Condition="'$(PackageId)' != ''" >$(PackageId)</NugetPackageId>
+				<NugetPackageId Condition="'$(PackageId)' == ''" >$(ProjectName)</NugetPackageId>
+			</_NoTargetProjectPathWithVersion>
+		</ItemGroup>
+	</Target>
+
+	<Target Name="SetDefaultPackageIcon" Condition="'$(PackageIcon)' == ''" >
+
+		<PropertyGroup>
+			<PackageIcon Condition="'$(PackageIcon)' == ''">$([System.IO.Path]::GetFileName('$(DefaultLogoPath)'))</PackageIcon>
+		</PropertyGroup>
+
+		<ItemGroup>
+			<_PackageFiles Include="$(DefaultLogoPath)" Pack="true" PackagePath="\" />
+		</ItemGroup>
+
+	</Target>
+
+	<PropertyGroup>
+		<GetPackageMetadataFromFilesDependsOn>
+			SetDefaultPackageIcon;
+			$(GetPackageMetadataFromFilesDependsOn)
+		</GetPackageMetadataFromFilesDependsOn>
+
+	</PropertyGroup>
+
+
+
+	<Target Name="GetPackageMetadataFromFiles"
+			DependsOnTargets="$(GetPackageMetadataFromFilesDependsOn)">
+
+	</Target>
+
+
+</Project>

@@ -1,0 +1,12 @@
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\MSBuild.Nuget.csproj.AssemblyReference.cache
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\MSBuild.Nuget.GeneratedMSBuildEditorConfig.editorconfig
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\MSBuild.Nuget.AssemblyInfoInputs.cache
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\MSBuild.Nuget.AssemblyInfo.cs
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\MSBuild.Nuget.csproj.CoreCompileInputs.cache
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\MSBuild.Nuget.sourcelink.json
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\bin\Debug\netstandard2.0\OpenStrata.MSBuild.Nuget.deps.json
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\bin\Debug\netstandard2.0\OpenStrata.MSBuild.Nuget.dll
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\bin\Debug\netstandard2.0\OpenStrata.MSBuild.Nuget.pdb
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\OpenStrata.MSBuild.Nuget.dll
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\OpenStrata.MSBuild.Nuget.pdb
+C:\repos\OpenStrata.Nuget\src\MSBuild.Nuget\obj\Debug\netstandard2.0\GitInfo.cache
