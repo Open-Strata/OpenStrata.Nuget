@@ -206,6 +206,11 @@ PublishScripts/
 *.nuget.props
 *.nuget.targets
 
+
+!OpenStrata.MSBuild.Nuget.props
+!OpenStrata.MSBuild.Nuget.targets
+
+
 # Microsoft Azure Build Output
 csx/
 *.build.csdef
