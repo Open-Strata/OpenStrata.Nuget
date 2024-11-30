@@ -43,6 +43,26 @@ Copyright (c) 74Bravo LLC and Contributors. All rights reserved.. All rights res
 		</Task>
 	</UsingTask>
 
+	<UsingTask TaskName="GetLocalFeed" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup>
+			<NugetListResult ParameterType="System.String" Required="true" />
+			<LocalFeedName ParameterType="System.String" />
+			<LocalPackageFeed ParameterType="System.String" Output="true" />
+		</ParameterGroup>
+		<Task>
+            <Using Namespace="System.Text.RegularExpressions" />		
+			<Code Type="Fragment" Language="cs">
+				<![CDATA[
+				    Regex regex = new Regex($"[0-9]+\\.[ ]+{LocalFeedName ?? "local"}[ ]+\\[Enabled\\][\\W]+(?<LocalFeed>[\\w:\\\\]+)");
+					var matches = regex.Matches(NugetListResult);
+					if (matches.Count > 0){
+						LocalPackageFeed = matches[0].Groups[1].Value;
+					}
+				]]>
+			</Code>
+		</Task>
+	</UsingTask>	
+
 	<Target Name="GetPackageReleaseNotesFromTextFile" Condition="Exists('$(PackageReleaseNotesPath)')" >
 
 		<PropertyGroup>
@@ -187,31 +207,39 @@ Copyright (c) 74Bravo LLC and Contributors. All rights reserved.. All rights res
 
 	</Target>
 
+	<PropertyGroup>
+		<LocalPackageFeedName Condition="'$(LocalPackageFeedName)' == ''">local</LocalPackageFeedName>
+	</PropertyGroup>
+
+	<Target Name="GetNugetConfigLocalFeed" Condition="'$(LocalPackageFeedName)' == ''" >
+
+        <Exec Command="dotnet nuget list source" ConsoleToMsBuild="true"    >
+			<Output TaskParameter="ConsoleOutput" ItemName="_nugetListSource" />
+		</Exec>
+
+		<GetLocalFeed NugetListResult="@(_nugetListSource, '')" 
+		              LocalFeedName="$(LocalPackageFeedName)" >
+			<Output TaskParameter="LocalPackageFeed" PropertyName="LocalPackageFeed" />			  				  
+		</GetLocalFeed>
+
+	</Target>	
 
 	<Target Name="MoveNugetPackageToLocalPackageFeed" AfterTargets="Pack" 
-			 DependsOnTargets="_ProcessGenerateNuspecOutput; $(MoveNugetPackageToLocalPackageFeedDependsOn)"
-	   Condition="'$(LocalPackageFeed)' != ''"   >
+			 DependsOnTargets="_ProcessGenerateNuspecOutput;GetNugetConfigLocalFeed;$(MoveNugetPackageToLocalPackageFeedDependsOn)">
 
-		<Message Text="$(LocalPackageFeed) does not exist.  Creating it now." Condition="!Exists('$(LocalPackageFeed)')" />
+		<Message Text="$(LocalPackageFeed) does not exist.  Creating it now." Condition="'$(LocalPackageFeed)' != '' and !Exists('$(LocalPackageFeed)')" />
 
-		<MakeDir  Directories="$(LocalPackageFeed)" Condition="!Exists('$(LocalPackageFeed)')"       />
+		<MakeDir  Directories="$(LocalPackageFeed)" Condition="'$(LocalPackageFeed)' != '' and !Exists('$(LocalPackageFeed)')"       />
 
-		<Message Text="Copying $(NugetFileAbsolutePath) to local package feed $(LocalPackageFeed)." />		
+		<Message Text="Copying $(NugetFileAbsolutePath) to local package feed $(LocalPackageFeed)." Condition="'$(LocalPackageFeed)' != ''" />		
 
 		<Copy SourceFiles="$(NugetFileAbsolutePath)"
 			  DestinationFolder="$(LocalPackageFeed)"
 			  SkipUnchangedFiles="true"
-			   Condition="'$(NugetFileAbsolutePath)' != ''" />
+			   Condition="'$(NugetFileAbsolutePath)' != '' and '$(LocalPackageFeed)' != ''" />
+
+		<Message Text="$(LocalPackageFeed) not specified." Condition="'$(LocalPackageFeed)' == ''" />					   
 		
 	</Target>	
-
-	<Target Name="SkipMoveNugetPackageToLocalPackageFeed" AfterTargets="Pack" 
-			 DependsOnTargets="_ProcessGenerateNuspecOutput; $(MoveNugetPackageToLocalPackageFeedDependsOn)"
-	   Condition="'$(LocalPackageFeed)' == ''"   >
-
-		<Message Text="$(LocalPackageFeed) not specified." />		 
-	
-	</Target>		
-
 
 </Project>

@@ -1,5 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+	<UsingTask TaskName="GetLocalFeed" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup>
+			<NugetListResult ParameterType="System.String" Required="true" />
+			<LocalFeedName ParameterType="System.String" />
+			<LocalPackageFeed ParameterType="System.String" Output="true" />
+		</ParameterGroup>
+		<Task>
+            <Using Namespace="System.Text.RegularExpressions" />		
+			<Code Type="Fragment" Language="cs">
+				<![CDATA[
+				    Regex regex = new Regex($"[0-9]+\\.[ ]+{LocalFeedName ?? "local"}[ ]+\\[Enabled\\][\\W]+(?<LocalFeed>[\\w:\\\\]+)");
+					var matches = regex.Matches(NugetListResult);
+					if (matches.Count > 0){
+						LocalPackageFeed = matches[0].Groups[1].Value;
+					}
+				]]>
+			</Code>
+		</Task>
+	</UsingTask>
+
 	<PropertyGroup>
 
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -105,6 +125,29 @@
 			<!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
 			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
 		</ItemGroup>
+	</Target>
+
+	<PropertyGroup>
+		<LocalPackageFeedName>local</LocalPackageFeedName>
+		<LocalFeedRegEx>[0-9]+\.[ ]+$(LocalPackageFeedName)[ ]+\[Enabled\][\W]+(?&lt;LocalFeed&gt;[\w:\\]+)</LocalFeedRegEx>
+	</PropertyGroup>
+
+
+	<Target Name="GetLocalFeedTest" AfterTargets="Build" >
+		<Warning Text="testing GetLocalFeedTest:  $(LocalFeedRegEx)" />
+
+        <Exec Command="dotnet nuget list source" ConsoleToMsBuild="true"    >
+			<Output TaskParameter="ConsoleOutput" ItemName="_nugetListSource" />
+		</Exec>
+
+		<GetLocalFeed NugetListResult="@(_nugetListSource, '')" 
+		              LocalFeedName="$(LocalPackageFeedName)" >
+
+			<Output TaskParameter="LocalPackageFeed" PropertyName="LocalPackageFeed" />			  				  
+		</GetLocalFeed>
+
+		<Warning Text="$(LocalPackageFeed)" />
+
 	</Target>
 
 
