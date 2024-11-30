@@ -211,7 +211,7 @@ Copyright (c) 74Bravo LLC and Contributors. All rights reserved.. All rights res
 		<LocalPackageFeedName Condition="'$(LocalPackageFeedName)' == ''">local</LocalPackageFeedName>
 	</PropertyGroup>
 
-	<Target Name="GetNugetConfigLocalFeed" Condition="'$(LocalPackageFeedName)' == ''" >
+	<Target Name="GetNugetConfigLocalFeed" Condition="'$(LocalPackageFeed)' == ''" >
 
         <Exec Command="dotnet nuget list source" ConsoleToMsBuild="true"    >
 			<Output TaskParameter="ConsoleOutput" ItemName="_nugetListSource" />
