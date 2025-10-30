@@ -22,7 +22,7 @@ function global:push2nuget
     if ([System.IO.File]::Exists($targetSolution ))
     {
         Show-Shortcut-Note "$targetSolution"
-        dotnet msbuild $solution -verbosity:normal -p:NugetPushKey=$key -p:NugetPushSource=https:\\nuget.org -p:Configuration=Release
+        dotnet msbuild $solution -verbosity:normal -p:NugetPushKey=$key -p:NugetPushSource=https://www.nuget.org -p:Configuration=Release
     } 
     else
     {
@@ -32,7 +32,7 @@ function global:push2nuget
         $solutions = Get-ChildItem $PSScriptRoot\*.sln | % { $_.FullName }
         foreach ($solution in $solutions){
             Show-Shortcut-Note "dotnet msbuild $solution"            
-dotnet      msbuild $solution -verbosity:normal -p:NugetPushKey=$key -p:NugetPushSource=https:\\nuget.org -p:Configuration=Release
+dotnet      msbuild $solution -verbosity:normal -p:NugetPushKey=$key -p:NugetPushSource=https://www.nuget.org -p:Configuration=Release
         }
     }  
 

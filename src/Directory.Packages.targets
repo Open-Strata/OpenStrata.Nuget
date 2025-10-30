@@ -193,9 +193,11 @@ Copyright (c) 74Bravo LLC and Contributors. All rights reserved.. All rights res
 			 DependsOnTargets="$(MoveNugetPackageToLocalPackageFeedDependsOn)">
 		<Message Text="Attempting to push package" Importance="high" />
 
-		<!-- <PropertyGroup>
+		<Warning Text='dotnet nuget push "$(PushPackagePath)" -k $(NugetPushKey) -s $(NugetPushSource)' />
+
+		<PropertyGroup>
 			<PushPackagePath>$(ProjectDir)$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg</PushPackagePath>
-		</PropertyGroup> -->
+		</PropertyGroup>
 
 		<!-- <Copy
 		SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg"
