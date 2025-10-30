@@ -1,5 +1,45 @@
 
 
+
+function global:push2nuget
+{
+    param(
+        [Parameter(Mandatory=$true)]           
+        [string]$key
+
+
+    )
+
+
+    $curDirName = (Get-Location | Get-Item).Name
+    $curDirPath = (Get-Location).Path
+
+    $targetSolution = "$curDirPath\$curDirName.sln"
+
+
+    Show-Shortcut-Note "looking for $targetSolution"
+
+    if ([System.IO.File]::Exists($targetSolution ))
+    {
+        Show-Shortcut-Note "$targetSolution"
+        dotnet msbuild $solution -verbosity:normal -p:NugetPushKey=$key -p:NugetPushSource=https:\\nuget.org -p:Configuration=Release
+    } 
+    else
+    {
+
+        Show-Shortcut-Note "Building all Solutions"
+
+        $solutions = Get-ChildItem $PSScriptRoot\*.sln | % { $_.FullName }
+        foreach ($solution in $solutions){
+            Show-Shortcut-Note "dotnet msbuild $solution"            
+dotnet      msbuild $solution -verbosity:normal -p:NugetPushKey=$key -p:NugetPushSource=https:\\nuget.org -p:Configuration=Release
+        }
+    }  
+
+}
+
+
+
 function global:build
 {
 
