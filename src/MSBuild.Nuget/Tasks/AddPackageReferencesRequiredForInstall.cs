@@ -30,10 +30,21 @@ namespace OpenStrata.MSBuild.Nuget.Tasks
                     Log.LogMessage($"Processing Project Reference : {taskItem.ItemSpec}");
 
                     var id = taskItem.ItemSpec;
-                    var version = taskItem.GetMetadata("Version");
+                    var version = taskItem.GetMetadata("Version") ?? "1.0.0";
 
-                    ////TODO: validate dependency information
-                    ///
+                    // Validate dependency information
+                    if (string.IsNullOrWhiteSpace(id))
+                    {
+                        Log.LogWarning($"Skipping package reference with empty or null ID");
+                        continue;
+                    }
+
+                    if (!IsValidVersion(version))
+                    {
+                        Log.LogWarning($"Package reference '{id}' has invalid version '{version}', using default version 1.0.0");
+                        version = "1.0.0";
+                    }
+
                     AddRootDependency(id, version);
 
                 }

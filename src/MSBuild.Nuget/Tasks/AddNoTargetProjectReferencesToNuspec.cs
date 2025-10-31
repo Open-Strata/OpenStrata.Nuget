@@ -24,15 +24,9 @@ namespace OpenStrata.MSBuild.Nuget.Tasks
         {
             if (ProjectReferences != null)
             {
-                //var dependencies = new List<dependency>();
-                //foreach (ITaskItem taskItem in ProjectReferences)
-                //{
-                //    var id = taskItem.GetMetadata("NugetPackageId");
-                //    var version = taskItem.GetMetadata("ProjectVersion");
-                //    //TODO: validate dendency information
-                //    dependencies.Add(new dependency()
-                //    {
-                //        id = id,
+                Log.LogMessage($"Processing {ProjectReferences.Length} project references for nuspec dependency inclusion.");
+
+                foreach (ITaskItem taskItem in ProjectReferences)
                 //        version = version
                 //    });
                 //}
@@ -81,10 +75,21 @@ namespace OpenStrata.MSBuild.Nuget.Tasks
                     Log.LogMessage($"Processing Project Reference : {taskItem.ItemSpec}");
 
                     var id = taskItem.GetMetadata("NugetPackageId");
-                    var version = taskItem.GetMetadata("ProjectVersion");
+                    var version = taskItem.GetMetadata("ProjectVersion") ?? "1.0.0";
 
-                    ////TODO: validate dependency information
-                    ///
+                    // Validate dependency information
+                    if (string.IsNullOrWhiteSpace(id))
+                    {
+                        Log.LogWarning($"Skipping project reference '{taskItem.ItemSpec}' - missing NugetPackageId metadata");
+                        continue;
+                    }
+
+                    if (!IsValidVersion(version))
+                    {
+                        Log.LogWarning($"Project reference '{id}' has invalid version '{version}', using default version 1.0.0");
+                        version = "1.0.0";
+                    }
+
                     AddRootDependency(id, version);
 
 

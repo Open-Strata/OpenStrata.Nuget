@@ -80,10 +80,18 @@ namespace OpenStrata.Xml
             {
                 privateHolderOut = new x();
 
-                privateHolderOut.ReplaceAll(parent.GetOrCreateElement(name).Nodes());
+                var existingElement = parent.GetOrCreateElement(name);
+                privateHolderOut.ReplaceAll(existingElement.Nodes());
 
-                //TODO:  Monitor this to ensure the new node keeps its attachment to the parent container.
-                parent.GetOrCreateElement(name).ReplaceWith(privateHolderOut);
+                // Replace the existing element with our typed element
+                // This maintains the parent-child relationship while providing strong typing
+                existingElement.ReplaceWith(privateHolderOut);
+                
+                // Verify the replacement was successful
+                if (privateHolderOut.Parent != parent)
+                {
+                    throw new InvalidOperationException($"Failed to properly attach typed element '{name}' to parent container");
+                }
             }
             return privateHolderOut;
         }

@@ -21,15 +21,16 @@ namespace OpenStrata.MSBuild.Tasks
 
                 taskName = this.GetType().Name;
 
-                Log.LogMessage($"OpenStrata Task: {taskName} has started.");
-                //TODO:  Do some logging activites and centralized error handling.
+                Log.LogMessage(MessageImportance.Normal, $"OpenStrata Task: {taskName} has started.");
+                
+                // Execute the specific task implementation
                 if (!ExecuteTask())
                 {
-                    Log.LogMessage($"OpenStrata Task: {taskName} has do not finish.");
+                    Log.LogMessage(MessageImportance.High, $"OpenStrata Task: {taskName} did not complete successfully.");
                     return false;
-
                 }
-                Log.LogMessage($"OpenStrata Task: {taskName} has finished.");
+                
+                Log.LogMessage(MessageImportance.Normal, $"OpenStrata Task: {taskName} has finished successfully.");
                 return true;
             }
             catch (Exception ex)
@@ -73,6 +74,29 @@ namespace OpenStrata.MSBuild.Tasks
         public void LogMessage(string msg)
         {
             this.Log.LogMessage(msg);
+        }
+
+        /// <summary>
+        /// Validates if a version string is in a proper format
+        /// </summary>
+        /// <param name="version">Version string to validate</param>
+        /// <returns>True if version is valid, false otherwise</returns>
+        protected bool IsValidVersion(string version)
+        {
+            if (string.IsNullOrWhiteSpace(version))
+                return false;
+
+            // Basic validation for semantic versioning (allows wildcards and pre-release)
+            // Examples: 1.0.0, 1.2.3-alpha, 2.0.*, [1.0,2.0)
+            if (version.Contains("[") || version.Contains("(") || version.Contains("]") || version.Contains(")"))
+            {
+                // Range notation - basic validation
+                return version.Length > 2;
+            }
+
+            // Check for basic version patterns
+            return System.Text.RegularExpressions.Regex.IsMatch(version, 
+                @"^\d+(\.\d+)*(\.\*)?(-[a-zA-Z0-9\-\.]+)?$");
         }
 
     }

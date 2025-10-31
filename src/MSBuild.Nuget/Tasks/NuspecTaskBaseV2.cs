@@ -53,19 +53,28 @@ namespace OpenStrata.MSBuild.Nuget.Tasks
         {
             if (ValidNuspecPathRequired && !NuspecLoadedSuccessfully)
             {
-                //TODO:  Post some logging messages here.
+                Log.LogError($"Failed to load required nuspec file at path: {AbsoluteNuspecPath}");
+                Log.LogMessage(MessageImportance.High, "Task execution cannot continue without a valid nuspec file.");
                 return false;
             }
+            
             var result = ExecuteNuspecTask();
 
             if (result && SaveNuspecAfterExecution)
             {
+                Log.LogMessage(MessageImportance.Normal, $"Saving changes to nuspec file: {AbsoluteNuspecPath}");
+                Log.LogMessage(MessageImportance.Low, $"Updated nuspec content:\n{NuspecPackage.ToString()}");
 
-                Log.LogMessage($"Saving changes to {AbsoluteNuspecPath}");
-                Log.LogMessage(NuspecPackage.ToString());
-
-                //TODO:  Post some logging messages here.
-                NuspecPackage.Save(AbsoluteNuspecPath);
+                try
+                {
+                    NuspecPackage.Save(AbsoluteNuspecPath);
+                    Log.LogMessage(MessageImportance.Normal, "Nuspec file saved successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Log.LogError($"Failed to save nuspec file: {ex.Message}");
+                    return false;
+                }
             }
 
             return result;

@@ -41,8 +41,18 @@ namespace OpenStrata.MSBuild.Nuget.Tasks
 
                     Log.LogMessage($"Processing Project Reference : {id} using version = {version}, isImplicitlyDefined = {isImplicitlyDefined} and privateAssets = {privateAssets}");
 
-                    ////TODO: validate dependency information
-                    ///
+                    // Validate dependency information
+                    if (string.IsNullOrWhiteSpace(id))
+                    {
+                        Log.LogWarning($"Skipping package reference with empty or null ID");
+                        continue;
+                    }
+
+                    if (!IsValidVersion(version))
+                    {
+                        Log.LogWarning($"Package reference '{id}' has invalid version '{version}', using default version 1.0.0");
+                        version = "1.0.0";
+                    }
 
                     if (isImplicitlyDefined != "true" && privateAssets != "all" )
                     {
